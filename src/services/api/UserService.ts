@@ -10,11 +10,11 @@ class UserAPI extends API {
   };
 
   static update_user = (id: number, data: any) => {
-    return this.putRequest(`students/update/${id}`, data);
+    return this.putRequest(`users/update/${id}`, data);
   };
 
   static delete_user = (id: number) => {
-    return this.deleteRequest(`students/delete/${id}`, {});
+    return this.deleteRequest(`users/delete/${id}`, {});
   };
 }
 
