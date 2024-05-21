@@ -6,14 +6,18 @@ import Image from "next/image";
 const initialUsers = [
   {
     id: 1,
-    name: "Hanniel TSASSE",
+    firstName: "Hanniel",
+    lastName: "TSASSE",
     email: "hanniel.tsasse@gmail.com",
+    gender: "M",
     avatar: "https://via.placeholder.com/150",
   },
   {
     id: 2,
-    name: "Josué FOUDJI",
+    firstName: "Josué",
+    lastName: "FOUDJI",
     email: "josue.foudji@yahoo.fr",
+    gender: "F",
     avatar: "https://via.placeholder.com/150",
   },
 ];
@@ -26,7 +30,7 @@ function LoadingOverlay() {
   );
 }
 
-export default function HomePage() {
+export default function Example() {
   const [users, setUsers] = useState(initialUsers);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -130,13 +134,16 @@ export default function HomePage() {
                   height={150}
                   className="w-[150px] h-[150px] rounded-full mb-4"
                   src={user.avatar}
-                  alt={`${user.name} profile`}
+                  alt={`${user.firstName} ${user.lastName} profile`}
                 />
                 <div className="text-center">
                   <h3 className="text-lg font-semibold text-white">
-                    {user.name}
+                    {user.firstName} {user.lastName}
                   </h3>
-                  <p className="text-gray-400">{user.email}</p>
+                  <p className="text-gray-300">{user.email}</p>
+                  <p className="text-gray-300">
+                    {user.gender == "M" ? "Homme" : "Femme"}
+                  </p>
                 </div>
                 <div className="flex mt-4 space-x-2">
                   <button
@@ -166,10 +173,19 @@ export default function HomePage() {
             </h2>
             <input
               type="text"
-              placeholder="Nom"
-              value={currentUser?.name || ""}
+              placeholder="Prénom"
+              value={currentUser?.firstName || ""}
               onChange={(e) =>
-                setCurrentUser({ ...currentUser, name: e.target.value })
+                setCurrentUser({ ...currentUser, firstName: e.target.value })
+              }
+              className="block w-full px-4 py-2 mb-4 border rounded-md"
+            />
+            <input
+              type="text"
+              placeholder="Nom"
+              value={currentUser?.lastName || ""}
+              onChange={(e) =>
+                setCurrentUser({ ...currentUser, lastName: e.target.value })
               }
               className="block w-full px-4 py-2 mb-4 border rounded-md"
             />
@@ -182,6 +198,17 @@ export default function HomePage() {
               }
               className="block w-full px-4 py-2 mb-4 border rounded-md"
             />
+            <select
+              value={currentUser?.gender || ""}
+              onChange={(e) =>
+                setCurrentUser({ ...currentUser, gender: e.target.value })
+              }
+              className="block w-full px-4 py-2 mb-4 border rounded-md"
+            >
+              <option value="">Sélectionner le sexe</option>
+              <option value="M">Masculin</option>
+              <option value="F">Féminin</option>
+            </select>
             <input
               type="file"
               onChange={handleFileChange}
@@ -223,7 +250,10 @@ export default function HomePage() {
             <h2 className="text-xl font-semibold mb-4">
               Confirmer la suppression
             </h2>
-            <p>Voulez-vous vraiment supprimer {currentUser?.name} ?</p>
+            <p>
+              Voulez-vous vraiment supprimer {currentUser?.firstName}{" "}
+              {currentUser?.lastName} ?
+            </p>
             <div className="flex justify-end space-x-2 mt-4">
               <button
                 onClick={closeDeleteModal}
