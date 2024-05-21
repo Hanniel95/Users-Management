@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import * as Yup from "yup";
 import { useFormik } from "formik";
+import UserAPI from "@/services/api/UserService";
 
 const validators = {
   first_name: Yup.string().required("Le prénom est requis"),
@@ -14,25 +15,6 @@ const validators = {
   gender: Yup.string().required("Le sexe est requis"),
 };
 
-const initialUsers = [
-  {
-    id: 1,
-    first_name: "Hanniel",
-    last_name: "TSASSE",
-    email: "hanniel.tsasse@gmail.com",
-    gender: "M",
-    avatar: "https://via.placeholder.com/150",
-  },
-  {
-    id: 2,
-    first_name: "Josué",
-    last_name: "FOUDJI",
-    email: "josue.foudji@yahoo.fr",
-    gender: "F",
-    avatar: "https://via.placeholder.com/150",
-  },
-];
-
 function LoadingOverlay() {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -42,14 +24,13 @@ function LoadingOverlay() {
 }
 
 export default function HomePage() {
-  const [users, setUsers] = useState(initialUsers);
+  const [users, setUsers] = useState<Record<string, any>[]>([]);
   const [errors, setErrors] = useState<Record<string, any>>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string>("");
 
   const formik = useFormik({
@@ -64,28 +45,25 @@ export default function HomePage() {
     onSubmit: async (values) => {
       setLoading(true);
       try {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-
         if (isEditing) {
-          setUsers(
-            users.map((user: any) =>
-              user.id === currentUser!.id
-                ? { ...currentUser, ...values, avatar: currentUser.avatar }
-                : user
-            )
-          );
+          await UserAPI.update_user(currentUser.id, values)
+            .then((data) => {
+              console.log(data);
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+          formik.resetForm();
         } else {
-          setUsers([
-            ...users,
-            {
-              ...values,
-              id: users.length > 0 ? users[users.length - 1].id + 1 : 1,
-              avatar: selectedFile
-                ? URL.createObjectURL(selectedFile)
-                : "https://via.placeholder.com/150",
-            },
-          ]);
+          await UserAPI.create_user(values)
+            .then((data) => {
+              console.log(data);
+            })
+            .catch((err) => {
+              console.log(err);
+            });
         }
+        getAllUsers();
         closeModal();
       } catch (error: any) {
         const newErrors: any = {};
@@ -99,6 +77,24 @@ export default function HomePage() {
     },
   });
 
+  useEffect(() => {
+    getAllUsers();
+  }, []);
+
+  const getAllUsers = async () => {
+    setLoading(true);
+    await UserAPI.get_users()
+      .then((data) => {
+        setUsers(data.users);
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
   const openModal = (user: any = null) => {
     setCurrentUser(user);
     setIsEditing(!!user);
@@ -109,7 +105,6 @@ export default function HomePage() {
     setIsModalOpen(false);
     setCurrentUser(null);
     setIsEditing(false);
-    setSelectedFile(null);
     setError("");
   };
 
@@ -123,21 +118,11 @@ export default function HomePage() {
     setCurrentUser(null);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
-      setCurrentUser({
-        ...currentUser,
-        avatar: URL.createObjectURL(e.target.files[0]),
-      });
-    }
-  };
 
   const handleDelete = async () => {
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    setUsers(users.filter((user) => user.id !== currentUser.id));
+    await UserAPI.delete_user(currentUser.id);
+    await getAllUsers();
     setLoading(false);
     closeDeleteModal();
   };
@@ -168,13 +153,13 @@ export default function HomePage() {
                 key={user.id}
                 className="bg-gray-700 p-6 rounded-lg shadow-md flex flex-col items-center"
               >
-                <Image
+                {/* <Image
                   width={150}
                   height={150}
                   className="w-[150px] h-[150px] rounded-full mb-4"
                   src={user.avatar}
                   alt={`${user.first_name} ${user.last_name} profile`}
-                />
+                /> */}
                 <div className="text-center">
                   <h3 className="text-lg font-semibold text-white">
                     {user.first_name} {user.last_name}
@@ -290,24 +275,6 @@ export default function HomePage() {
               </select>
               {formik.touched.gender && formik.errors.gender && (
                 <div className="text-red-500">{formik.errors.gender}</div>
-              )}
-            </div>
-            <div className="mb-4">
-              <input
-                type="file"
-                onChange={handleFileChange}
-                className="block w-full px-4 py-2 mb-1 border rounded-md"
-              />
-              {currentUser?.avatar && (
-                <div className="mb-4">
-                  <Image
-                    width={150}
-                    height={150}
-                    className="w-[150px] h-[150px] rounded-full"
-                    src={currentUser.avatar}
-                    alt="Profile preview"
-                  />
-                </div>
               )}
             </div>
             <div className="flex justify-end space-x-2">
