@@ -5,6 +5,7 @@ import Image from "next/image";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import UserAPI from "@/services/api/UserService";
+import { UserModel } from "@/Types/Users";
 
 const validators = {
   first_name: Yup.string().required("Le prénom est requis"),
@@ -24,7 +25,7 @@ function LoadingOverlay() {
 }
 
 export default function HomePage() {
-  const [users, setUsers] = useState<Record<string, any>[]>([]);
+  const [users, setUsers] = useState<UserModel[]>([]);
   const [errors, setErrors] = useState<Record<string, any>>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
